@@ -8,7 +8,7 @@ Application Programming Interface
 	- we need a route to access it.
 	- and will give back a response.
 	- simple structured way to view our platform as we increase in size.
-
+// TDD is the idea that we write the test out very thoroughly before the code.
 As your application increases in size, we need to have documentation in place because it will start becoming really confusing.
 HTTP verb - GET request
 then add the route.
@@ -23,10 +23,201 @@ this will give back something like... // POST /repos/:owner/:repo/git/commits
 	"message": "my commit message",
 	"tree": "aslfkaj;jfqwopi", // some hash
 	"parents": [
-		"",
-		""
+		"asdf;jaljsdjfjj;alksdf", // different hashes 
+		"akljdsf;lasdfkja;ls"     //
 	]
 }
+
+We will build and api, list our routes and documentation.
+	then test it out.
+	then finally write our code.
+
 --developer.github.com/v3/git/commits
 
+---- TESTS ----
+mkdir SERVER-TESTING
+code app.js
+> npm init
+> npm i --save mongoose express body-parser mocha chai sinon morgan
+	mocha chai sinon are making a return
+	app.js tell the server to listen, tell mongoose to connect to our db
+	server.js - creating primary server
+> code server.js
+> code food.js
+> mongod
+> nodemon app.js
+> curl localhost:8080/food
+> npm i --save chai-http
+
+app.js--------------------------------------------------------------------
+const mongoose = require('mongoose');
+const server = require('./server');
+
+// print out when we are connected to our db
+mongoose.connect('mongodb://localhost/food', {}, (err) => {
+	if (err) return console.log(err);
+	console.log('connected to food DB');
+});
+
+server.listen(8080, () => {
+	console.log('server listening on port 8080');
+});
+
+server.js -------------------------------------------------------
+// this will create our server
+const express = require('express');
+const bodyParser = require('body-parser');
+const Food = require('./food');
+
+const server = express();
+server.use(bodyParser.json()); // now we can make a post request
+
+server.get('/food', (req, res) => {
+	Food.find({}, (err, food) => {
+		if (err) return res.send(err);
+		res.send(food);
+	});
+});
+
+server.post('/food', (req, res) => {
+	const food = new Food(req.body);
+	food.save((err, newFood) => {
+		if (err) return res.send(err);
+		res.send(newFood);
+	});
+});
+
+module.exports = server;
+
+food.js ----------------------------------------------------
+const mongoose = require('mongoose');
+const { Schema } = mongoose;
+
+const FoodSchema = new Schema({
+	name: {
+		type: String,
+		required: true,
+		unique: true
+	}
+});
+
+// Two types of test
+	// one for the model and one for the routes.
+
+FoodSchema.methods.getName = function() {
+	return this.name;
+};
+
+FoodSchema.statics.getAllFoods = function(cb) { // a function that you invoke off of class rather than an instance of it.
+	Food.find({}. (err, food) => {
+		if (err) return cb(err);
+		cb();
+	});
+};
+
+const Food = mongoose.model('Food', FoodSchema);
+module.exports = Food;
+
+routes.test.js -----------------------------------------------
+// Creating a test
+const mongoose = require('mongose');
+mongoose.connect('mongodb://localhost/test'); 
+
+const Food = require('./food');
+const server = require('./server');
+const chai = require('chai');
+const chaiHTTP = require('chai-http');
+const expect = chai.expect;
+
+chai.user(chaiHTTP); // allows us to mock these requests below
+
+// We want tests to be descriptive as possible
+// This function will run before every test we do, that way each test has a clean canvas to start on.
+
+describe('/food', () => {
+	beforeEach((done) => { // hook -> before each test runs
+		Food.remove({}, (err) => { // clean canvas. - where we start interactin with the db
+			if (err) console.log(err); // db is on another server so we need to make a request wihich is asynchronous and so done means to not run the other test until it is finished.
+			done(); // a callback function provided by mocha - knows that if the ufnciton is not invoked, it wil not move on.
+		});
+	});
 	
+	describe('[GET] /food', () => {
+		it('should get all of the food', () => {
+			chai // This is making a request
+				.request(server)
+				.get('/food')
+				.end((err, res) => {
+					if (err) return console.log(err);
+					expect(res.status).to.equal(200);
+					expect(Array.isArray(res.body)).to.equal(true);
+					expect(res.body.length).to.equal(0);
+					done();
+				});
+		});
+	});
+
+	describe('[POST] /food', () => {
+		it('should add a new food', () => {
+			const food = {
+				name: 'Hot Dog'
+			};
+
+			chai // This is making a request
+				.request(server)
+				.post('/food')
+				.send(food)
+				.end((err, res) => {
+					if (err) return console.log(err);
+					expect(res.status).to.equal(200);
+					expect(res.body.name).to.equal('Hot Dog');
+					done();
+				});
+		});
+	});
+});
+
+// These tests are specifically testing the the Api point
+package.json ------------------------------------------
+"scripts" : {
+	"test": "mocha *.test.js"
+}
+
+models.test.js -----------------------------------------
+// Creating a test
+const mongoose = require('mongose');
+mongoose.connect('mongodb://localhost/test'); 
+const Food = require('./food');
+
+const chai = require('chai');
+const expect = chai.expect;
+const sinon = require('sinon'); // allow us to scope out some methods. Sometimes we dont want all of the methods to rung
+				// Simplify the tests
+describe('Food', () => {
+	describe('#getName()', () => { // simple test we're running
+		it('should return the name of the food', () => {
+			const food = new Food({
+				name: 'Rib Steak'
+			});
+			expect(food.getName()).to.equal('Rib Steak');
+		});
+		it('should return the name of the food', () => {
+			const food = new Food({
+				name: 'Rib Steak'
+			});
+			expect(typeof food.getName()).to.equal('string');
+		});
+	});
+
+	describe('#getAllFoods()', () => {
+		it('should return all the foods', () => { // this will add the functionality ofnot having to test a large db
+			sinon.stub(Food, 'find');
+			Food.find.yields(null, [{ name }: 'pumpkin pie' }]); // dummyt ydata that wil not affect the mongodb
+			Food.getAllFoods(() => {
+				expect(foods.length).to.equal(1);
+				expect(foods[0].name).to.equal('pumpkin pie');
+				Food.find.restore();
+			});
+		});
+	});
+});
