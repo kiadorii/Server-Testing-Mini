@@ -1,0 +1,90 @@
+Dec 18th, 2017
+Test Driven Development
+The Cycles of TDD
+	- time box these cyles in a small portoin and how they prepare for our solo week
+	- solo week will polishing up projects and expect us to use some of the software for our capstone projects.
+	- IDea that you can break your entire entriprise software application
+	- Have been learning about agile test driven development
+	- How to get stuff done
+	
+	- Documentation
+	- Tests
+	- Code
+
+Marktable - inline table editor
+markable.in/editor
+
+------------- SERVER-MINI-SPRINT -------------
+
+> npm init
+> npm install --save express body-parser mongoose mocha chai-http morgan sinon
+	- adds the dependencies we add afterwards
+
+	-package-lock.json is a history of what our dependencies are.
+
+> code server.js app.js docs.md .gitignore routes.test.js models.test.js
+** Changed line 7 on package.json and added...
+	"test": "mocha *.test.js"
+	"start": "nodemon app.js"
+> node app.js
+** Then run the localhost:####/route on the web
+
+Q: How to write a node server?
+-Add to server.js
+	const express = require('express');
+	const bodyParser = require('body-pareser');
+	const morgan = require('morgan');
+
+	const server = express();
+	server.use(bodyParser.json());
+	server.use(morgan('combined'));
+
+	module.exports = server;
+- morgan is a requrest logger for node
+	* HTTP request logger middleware for node.js
+	* gives us the ability to add login for our route.
+	* github.com/express/morgan <- more information
+	* combine - we can figure out what type of output we are getting from our server.
+		server.get('/food', (req, res) => {
+    			res.send('Hello World!');
+		});
+		- server.js
+	* fast and easy in logging
+
+-We are exporting our default as server. So we need to add things to app.js
+-Process environment variable.. 
+	server.listen(port, () => {
+		console.log(`Port listening on ${port}`);
+	});
+
+developer.github.com/v3/
+
+** routes.test.js **
+const mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/food-test');
+--> Need to import models because the test wil mimic what we will test on the models
+we can use chai to mimic our server
+
+--- BOILER PLATE ----
+const mongoose = require('mongoose');
+const chai = require('chai');
+const chaiHTTP = require('chai-http');
+const expect = chai.expect();
+chai.user(chaiHTTP);
+mongoose.connect('mongodb://localhost/food-test');
+
+const server = require('server');
+// require your models
+---------------------
+--- creating a get request ---
+describe((`food api`), () => {
+    describe(`[GET] '/food'`, () => {
+        it('should return hello world', () => {
+            chai.request(server)
+                .get('/food')
+		.end((err, reqponse) => {
+			expect(response.status).to.equal(200);
+		});
+        })
+    });
+});

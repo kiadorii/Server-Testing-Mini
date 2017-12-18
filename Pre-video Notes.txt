@@ -1,0 +1,32 @@
+Pre-Class Video for Server Testing
+
+Application Programming Interface
+	In a company, you have a bunch of information you're storing that you need to access. (Collection - mongodb)
+	To access it, we need a way to interact with the data programatically
+		-restful api, code wrapper, interally - private vs public
+	- It is pretty much a way to access a database that we can interact with
+	- we need a route to access it.
+	- and will give back a response.
+	- simple structured way to view our platform as we increase in size.
+
+As your application increases in size, we need to have documentation in place because it will start becoming really confusing.
+HTTP verb - GET request
+then add the route.
+
+To create a commit - POST --- route with different parameters.
+Shows us how to structure our object.
+
+HTTP verb /repos/:owner/:repo/git/commits
+
+this will give back something like... // POST /repos/:owner/:repo/git/commits
+{
+	"message": "my commit message",
+	"tree": "aslfkaj;jfqwopi", // some hash
+	"parents": [
+		"",
+		""
+	]
+}
+--developer.github.com/v3/git/commits
+
+	

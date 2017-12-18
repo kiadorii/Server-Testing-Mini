@@ -57,3 +57,9 @@ mongoose.connect('mongodb://localhost/test');
 ```
 
 * This should be all you need to get started on this project. This mini-project will actually be just the starter pack for your Server Testing Sprint.
+
+
+```
+  IMPORTANT TO NOTE THAT THE SERVER-TESTING-MINI IS CALLED food-app in the video
+  this will turn into the main sprint
+```
